@@ -1,0 +1,146 @@
+<?xml version='1.0'?>
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor 
+	license agreements. See the NOTICE file distributed with this work for additional 
+	information regarding copyright ownership. The ASF licenses this file to 
+	you under the Apache License, Version 2.0 (the "License"); you may not use 
+	this file except in compliance with the License. You may obtain a copy of 
+	the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required 
+	by applicable law or agreed to in writing, software distributed under the 
+	License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
+	OF ANY KIND, either express or implied. See the License for the specific 
+	language governing permissions and limitations under the License. -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>thokuest</groupId>
+	<artifactId>http-transport-topic-example</artifactId>
+	<packaging>jar</packaging>
+	<version>2.6.3</version>
+
+	<name>ActiveMQ Artemis JMS Http Transport Example</name>
+
+	<properties>
+		<activemq.basedir>${project.build.directory}/artemis/apache-artemis-${project.version}</activemq.basedir>
+		<consumerDelay>0</consumerDelay>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>artemis-jms-client-all</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.logmanager</groupId>
+			<artifactId>jboss-logmanager</artifactId>
+			<version>2.0.3.Final</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.googlecode.maven-download-plugin</groupId>
+				<artifactId>download-maven-plugin</artifactId>
+				<version>1.4.1</version>
+				<executions>
+					<execution>
+						<id>install-artemis</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>wget</goal>
+						</goals>
+						<configuration>
+							<url>https://www.apache.org/dyn/closer.cgi?filename=activemq/activemq-artemis/2.6.3/apache-artemis-2.6.3-bin.zip&amp;action=download</url>
+							<unpack>true</unpack>
+							<outputDirectory>${project.build.directory}/artemis</outputDirectory>
+							<outputFileName>apache-artemis-${project.version}-bin.zip</outputFileName>
+							<sha512>df2725e5ac443075fd2102619cd42c39d87a660b0473bf46c6a0f7840185e5a2b342cb436d9dc9d5ce73c4c0fb5a1f20c93100ca1b956d02b7e458e2d0d28f08</sha512>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.activemq</groupId>
+				<artifactId>artemis-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>create</id>
+						<goals>
+							<goal>create</goal>
+						</goals>
+						<configuration>
+							<ignore>${noServer}</ignore>
+							<configuration>${project.build.directory}/classes/activemq/server0</configuration>
+						</configuration>
+					</execution>
+					<execution>
+						<id>stop-running-server</id>
+						<goals>
+							<goal>cli</goal>
+						</goals>
+						<configuration>
+							<ignore>${noServer}</ignore>
+							<args>
+								<param>stop</param>
+							</args>
+						</configuration>
+					</execution>
+					<execution>
+						<id>start</id>
+						<goals>
+							<goal>cli</goal>
+						</goals>
+						<configuration>
+							<ignore>${noServer}</ignore>
+							<spawn>true</spawn>
+							<testURI>tcp://localhost:61616?http-enabled=true</testURI>
+							<args>
+								<param>run</param>
+							</args>
+						</configuration>
+					</execution>
+					<execution>
+						<id>runClient</id>
+						<goals>
+							<goal>runClient</goal>
+						</goals>
+						<configuration>
+							<clientClass>thokuest.HttpTransportTopicExample</clientClass>
+							<args>
+								<arg>${consumerDelay}</arg>
+							</args>
+						</configuration>
+					</execution>
+					<execution>
+						<id>stop</id>
+						<goals>
+							<goal>cli</goal>
+						</goals>
+						<configuration>
+							<ignore>${noServer}</ignore>
+							<args>
+								<param>stop</param>
+							</args>
+						</configuration>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>thokuest</groupId>
+						<artifactId>http-transport-topic-example</artifactId>
+						<version>${project.version}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-clean-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+</project>
